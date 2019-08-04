@@ -1,0 +1,18 @@
+elasticsearch:
+  replicas: 1
+  minimumMasterNodes: 1
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "3Gi"
+    limits:
+      cpu: "1000m"
+      memory: "3Gi"
+
+kibana:
+  ingress:
+    enabled: true
+    annotations: {}
+      # kubernetes.io/ingress.class: nginx
+    hosts:
+      - kibana.loc

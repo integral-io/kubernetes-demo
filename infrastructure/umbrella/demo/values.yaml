@@ -1,0 +1,20 @@
+replicaCount: 1
+image:
+  pullPolicy: Always
+  repository: demo/logger
+  tag: latest
+#  secret: regcred
+service:
+  name: java
+  type: ClusterIP
+  externalPort: 80
+  internalPort: 8080
+resources:
+  limits:
+    cpu: 100m
+    memory: 300Mi
+  requests:
+    cpu: 100m
+    memory: 300Mi
+ingress:
+  enabled: false

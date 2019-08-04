@@ -1,0 +1,4 @@
+dependencies:
+  - name: openfaas
+    version: 4.4.0
+    repository: 'https://openfaas.github.io/faas-netes/'
