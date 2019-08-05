@@ -25,6 +25,7 @@ public class LoggyService {
         return null;
     }
 
+
     public boolean stopLogging() {
         loggy = false;
         return loggy;

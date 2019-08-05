@@ -1,9 +1,10 @@
 replicaCount: 1
 image:
-  pullPolicy: Always
+  pullPolicy: IfNotPresent
   repository: demo/logger
-  tag: latest
+  tag: everything
 #  secret: regcred
+host: logger.loc
 service:
   name: java
   type: ClusterIP
@@ -17,4 +18,4 @@ resources:
     cpu: 100m
     memory: 300Mi
 ingress:
-  enabled: false
+  enabled: true

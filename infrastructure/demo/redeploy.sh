@@ -28,7 +28,7 @@ function tunnel {
 
 #  trap emptyTunnel ERR
 #  trap tunnel EXIT
-  (minikube tunnel) &>/dev/null &
+#  (minikube tunnel) &>/dev/null &
 
   #192.168.99.106  bosch-lsm.loc
   box "Tunnel started"
@@ -40,17 +40,17 @@ function tunnel {
   # route -n add 172.17.0.0/16 <minikube ip>  
   # route -n add 10.0.0.0/24 <minikube ip>
 
-  sed -i "s/^ *[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+( +mini-sample.loc)/$IP)\1/" /etc/hosts
+#  sed -i "s/^ *[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+( +mini-sample.loc)/$IP)\1/" /etc/hosts
   echo "$IP mini-sample.loc"
 }
 
 box "Reinstalling minikube"
 #trap emptyTunnel ERR
-minikube tunnel -c
+#minikube tunnel -c
 # Todo: add conditional check to see if minikube is running, and a timeout/force
-minikube stop
-minikube delete
-minikube start --memory 11000 --insecure-registry localhost:5000
+#minikube stop
+#minikube delete
+#minikube start --memory 11000 --insecure-registry localhost:5000
 
 hl
 

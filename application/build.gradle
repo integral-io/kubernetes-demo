@@ -26,6 +26,7 @@ repositories {
 }
 
 dependencies {
+	runtime('net.logstash.logback:logstash-logback-encoder:5.1')
 	implementation 'org.springframework.boot:spring-boot-starter'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	compileOnly 'org.projectlombok:lombok'
