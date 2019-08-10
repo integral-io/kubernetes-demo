@@ -1,0 +1,12 @@
+issuer:
+  email: andrew@integral.io
+
+global:
+  certificate:
+    secret: dev-secret-infra-local-encrypt
+    environment: dev
+    domains:
+    - nowak-dev.xyz
+    - grafana.nowak-dev.xyz
+    - kibana.nowak-dev.xyz
+    - opfaas.nowak-dev.xyz

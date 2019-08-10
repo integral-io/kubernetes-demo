@@ -26,9 +26,12 @@ repositories {
 }
 
 dependencies {
+	implementation 'io.prometheus:simpleclient:0.6.0'
+	implementation 'io.micrometer:micrometer-registry-prometheus:1.2.0'
 	runtime('net.logstash.logback:logstash-logback-encoder:5.1')
 	implementation 'org.springframework.boot:spring-boot-starter'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation group: "org.springframework.boot", name: "spring-boot-starter-actuator", version: "2.1.5.RELEASE"
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'

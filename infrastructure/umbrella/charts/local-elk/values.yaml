@@ -1,15 +1,3 @@
-elasticsearch:
-  replicas: 1
-  minimumMasterNodes: 1
-  antiAffinity: "soft"
-  resources:
-    requests:
-      cpu: "100m"
-      memory: "3Gi"
-    limits:
-      cpu: "1000m"
-      memory: "3Gi"
-
 kibana:
   ingress:
     enabled: true

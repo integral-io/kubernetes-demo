@@ -1,0 +1,13 @@
+# this is the thing that will let us generate certificates using keycloak. Only needs to be setup once.
+apiVersion: certmanager.k8s.io/v1alpha1
+kind: ClusterIssuer
+metadata:
+  name: "letsencrypt-{{ .Values.global.certificate.environment}}"
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: {{ .Values.issuer.email }}
+    privateKeySecretRef:
+      name: "letsencrypt-{{ .Values.global.certificate.environment}}"
+    http01: {}

@@ -1,3 +1,4 @@
+apiVersion: v1
 description: A chart building FAAS
 name: local-functions
 version: 0.1.0

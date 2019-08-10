@@ -13,5 +13,3 @@ spec:
     name: {{ .Values.service.name }}
   selector:
     app: {{ template "fullname" . }}
-#    app: {{ template "fullname" . }}
-#    release: {{ .Release.name }}
