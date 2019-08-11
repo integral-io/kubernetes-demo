@@ -10,3 +10,21 @@ management:
 
 server:
   port: 8080
+
+keycloak:
+  enabled: true
+  realm: nowak
+  auth-server-url: "https://accounts.nowak-dev.xyz/auth"
+  ssl-required: external
+  resource: loggy
+  securityConstraints:
+    -
+      authRoles:
+        - member
+      securityCollections:
+        -
+          name: member resource
+          patterns:
+            - /loggy/*
+            - /owners/*
+            - /trash/*

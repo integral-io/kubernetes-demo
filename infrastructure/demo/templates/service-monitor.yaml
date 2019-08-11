@@ -1,0 +1,16 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: "{{ template "fullname" . }}-monitor"
+  labels:
+    app: "{{ template "fullname" . }}-monitor"
+spec:
+  namespaceSelector:
+    any: true
+  selector:
+    matchLabels:
+      app: {{ template "fullname" . }}
+  endpoints:
+    - port: {{ .Values.service.metricsPortName }}
+      interval: 10s
+

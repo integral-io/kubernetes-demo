@@ -1,4 +1,7 @@
 openfaas:
+  basic_auth: false
+  prometheus:
+    create: false
   functionNamespace: default
   ingress:
     enabled: true

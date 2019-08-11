@@ -18,7 +18,26 @@ spec:
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         ports:
-        - containerPort: {{ .Values.service.internalPort }}
+        - name: {{ .Values.service.internalPortName }}
+          containerPort: {{ .Values.service.internalPort }}
+        - name: {{ .Values.service.metricsPortName }}
+          containerPort: {{ .Values.service.metricsPort }}
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: {{ .Values.service.metricsPortName }}
+          initialDelaySeconds: 140
+          timeoutSeconds: 10
+          periodSeconds: 5
+          failureThreshold: 4
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: {{ .Values.service.metricsPortName }}
+          initialDelaySeconds: 300
+          timeoutSeconds: 2
+          periodSeconds: 30
+          failureThreshold: 2
         resources:
 {{ toYaml .Values.resources | indent 12 }}
       imagePullSecrets:

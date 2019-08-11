@@ -15,6 +15,9 @@ service:
   type: ClusterIP
   externalPort: 80
   internalPort: 8080
+  internalPortName: application
+  metricsPort: 8079
+  metricsPortName: metrics
 resources:
   limits:
     cpu: 100m
