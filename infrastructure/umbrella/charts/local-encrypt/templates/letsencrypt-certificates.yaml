@@ -1,4 +1,5 @@
 # here we configure the creation of our domains. These must be defined here before you creat the host in the ingress
+{{- if .Values.enabled }}
 apiVersion: certmanager.k8s.io/v1alpha1
 kind: Certificate
 metadata:
@@ -17,3 +18,4 @@ spec:
   issuerRef:
     name: "letsencrypt-{{ .Values.global.certificate.environment}}"
     kind: ClusterIssuer
+{{- end }}

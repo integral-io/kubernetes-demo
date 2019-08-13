@@ -1,39 +1,66 @@
 local-elk:
   elasticsearch:
-    replicas: 1
-    minimumMasterNodes: 1
     antiAffinity: "soft"
+    esJavaOpts: "-Xmx128m -Xms128m"
+    replicas: 1
+    volumeClaimTemplate:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "standard"
+      resources:
+        requests:
+          storage: 100M
+#    minimumMasterNodes: 1
     resources:
       requests:
         cpu: "100m"
-        memory: "3Gi"
+        memory: "512M"
       limits:
         cpu: "1000m"
-        memory: "3Gi"
+        memory: "512M"
   kibana:
     ingress:
       enabled: true
       annotations:
        kubernetes.io/ingress.class: nginx
+       # auth
+       nginx.ingress.kubernetes.io/auth-type: basic
+       nginx.ingress.kubernetes.io/auth-secret: basic-auth
+       # message to display with an appropriate context why the authentication is required
+       nginx.ingress.kubernetes.io/auth-realm: 'Authentication Required'
       hosts:
-        - kibana.nowak-dev.xyz
+        - kibana.nowak-dev.loc
+
+local-cloak:
+  keycloak:
+    keycloak:
+      ingress:
+        annotations:
+          kubernetes.io/ingress.class: nginx
+        hosts:
+          - accounts.nowak-dev.loc
+        path: /
 
 local-functions:
   openfaas:
     ingress:
-      enabled: true
+      annotations:
+        kubernetes.io/ingress.class: nginx
+        # auth
+        nginx.ingress.kubernetes.io/auth-type: basic
+        nginx.ingress.kubernetes.io/auth-secret: basic-auth
+        # message to display with an appropriate context why the authentication is required
+        nginx.ingress.kubernetes.io/auth-realm: 'Authentication Required'
       hosts:
-        - host: openfaas.nowak-dev.xyz
+        - host: openfaas.nowak-dev.loc
+          serviceName: gateway
+          servicePort: 8080
+          path: /
 
-local-prometheus:
-  grafana:
-    ingress:
-      enabled: true
-      hosts:
-        - grafana.nowak-dev.xyz
-
-nginx-ingress:
-  controller:
-    service:
-      loadBalancerIP: 34.68.187.183
-      externalTrafficPolicy: Cluster
+local-metrics:
+  local-prometheus:
+    grafana:
+      ingress:
+        annotations:
+          kubernetes.io/ingress.class: nginx
+        hosts:
+          - grafana.nowak-dev.loc

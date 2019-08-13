@@ -1,10 +1,11 @@
 **.tgz
-**.cert.pem
-**.csr.pem
-**.key.pem
+#**.cert.pem
+#**.csr.pem
+#**.key.pem
+#*ca.srl
 *ratelimit_env.json
 *telepresence.log
-*ca.srl
+**/certs
 
 HELP.md
 .gradle

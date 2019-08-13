@@ -1,4 +1,5 @@
 # this is the thing that will let us generate certificates using keycloak. Only needs to be setup once.
+{{- if .Values.enabled }}
 apiVersion: certmanager.k8s.io/v1alpha1
 kind: ClusterIssuer
 metadata:
@@ -11,3 +12,4 @@ spec:
     privateKeySecretRef:
       name: "letsencrypt-{{ .Values.global.certificate.environment}}"
     http01: {}
+{{- end }}

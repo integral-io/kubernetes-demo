@@ -5,10 +5,5 @@ openfaas:
   functionNamespace: default
   ingress:
     enabled: true
-    hosts:
-      - host: openfaas.loc
-        serviceName: gateway
-        servicePort: 8080
-        path: /
     annotations: {}
 #      kubernetes.io/ingress.class: nginx

@@ -1,14 +1,3 @@
-global:
-  certificate:
-    secret: dev-secret-infra-local-encrypt
-    environment: dev
-    domains:
-      - nowak-dev.xyz
-      - grafana.nowak-dev.xyz
-      - kibana.nowak-dev.xyz
-      - accounts.nowak-dev.xyz
-      - openfaas.nowak-dev.xyz
-
 local-elk:
   kibana:
     ingress:
@@ -29,29 +18,25 @@ local-elk:
       hosts:
         - kibana.nowak-dev.xyz
 
-keycloak:
+local-cloak:
   keycloak:
-    username: admin
-    existingSecret: basic-auth
-    existingSecretKey: basic-auth-password
-    ingress:
-      enabled: true
-      annotations:
-        kubernetes.io/ingress.class: nginx
-        certmanager.k8s.io/cluster-issuer: letsencrypt-dev
-        nginx.ingress.kubernetes.io/ssl-redirect: "true"
-      tls:
-        - hosts:
-            - accounts.nowak-dev.xyz
-          secretName: dev-secret-infra-local-encrypt
-      hosts:
-      - accounts.nowak-dev.xyz
-      path: /
+    keycloak:
+      ingress:
+        annotations:
+          kubernetes.io/ingress.class: nginx
+          certmanager.k8s.io/cluster-issuer: letsencrypt-dev
+          nginx.ingress.kubernetes.io/ssl-redirect: "true"
+        tls:
+          - hosts:
+              - accounts.nowak-dev.xyz
+            secretName: dev-secret-infra-local-encrypt
+        hosts:
+        - accounts.nowak-dev.xyz
+        path: /
 
 local-functions:
   openfaas:
     ingress:
-      enabled: true
       annotations:
         kubernetes.io/ingress.class: nginx
         certmanager.k8s.io/cluster-issuer: letsencrypt-dev
@@ -71,28 +56,39 @@ local-functions:
           servicePort: 8080
           path: /
 
-prometheus-operator:
-  grafana:
-    adminPassword: prom-operator
-    admin:
-      existingSecret: basic-auth
-      userKey: basic-auth-user
-      passwordKey: basic-auth-password
-    ingress:
-      enabled: true
-      annotations:
-        kubernetes.io/ingress.class: nginx
-        certmanager.k8s.io/cluster-issuer: letsencrypt-dev
-        nginx.ingress.kubernetes.io/ssl-redirect: "true"
-      tls:
-      - hosts:
-        - grafana.nowak-dev.xyz
-        secretName: dev-secret-infra-local-encrypt
-      hosts:
-        - grafana.nowak-dev.xyz
+local-metrics:
+  prometheus-operator:
+    grafana:
+      ingress:
+        enabled: true
+        annotations:
+          kubernetes.io/ingress.class: nginx
+          certmanager.k8s.io/cluster-issuer: letsencrypt-dev
+          nginx.ingress.kubernetes.io/ssl-redirect: "true"
+        hosts:
+          - grafana.nowak-dev.xyz
+        path: /
+        tls:
+          - secretName: dev-secret-infra-local-encrypt
+            hosts:
+            - grafana.nowak-dev.xyz
+
+local-encrypt:
+  enabled: true
 
 nginx-ingress:
   controller:
     service:
       loadBalancerIP: 34.68.187.183
       externalTrafficPolicy: Cluster
+
+global:
+  certificate:
+    secret: dev-secret-infra-local-encrypt
+    environment: dev
+    domains:
+      - nowak-dev.xyz
+      - grafana.nowak-dev.xyz
+      - kibana.nowak-dev.xyz
+      - accounts.nowak-dev.xyz
+      - openfaas.nowak-dev.xyz

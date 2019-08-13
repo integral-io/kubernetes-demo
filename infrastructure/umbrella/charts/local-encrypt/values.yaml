@@ -1,6 +1,8 @@
 issuer:
   email: andrew@integral.io
 
+enabled: false
+
 global:
   certificate:
     secret: dev-secret-infra-local-encrypt
