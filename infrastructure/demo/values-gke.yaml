@@ -1,3 +1,11 @@
+global:
+  service:
+    loadBalancerIP: 34.68.187.183
+    externalTrafficPolicy: Cluster
+  certificate:
+    secret: dev-secret-infra-local-encrypt
+    environment: dev
+
 base-application:
   image:
     repository: gcr.io/k8frastructure/logger
@@ -14,8 +22,3 @@ base-application:
       kubernetes.io/ingress.global-static-ip-name: nowak-dev-xyz-ip
       kubernetes.io/ingress.class: nginx
       nginx.ingress.kubernetes.io/ssl-redirect: "true"
-
-global:
-  certificate:
-    secret: dev-secret-infra-local-encrypt
-    environment: dev

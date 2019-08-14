@@ -1,3 +1,27 @@
+local-encrypt:
+  enabled: true
+
+local-networking:
+  nginx-ingress:
+    controller:
+      service:
+        loadBalancerIP: 34.68.187.183
+        externalTrafficPolicy: Cluster
+
+global:
+  service:
+    loadBalancerIP: 34.68.187.183
+    externalTrafficPolicy: Cluster
+  certificate:
+    secret: dev-secret-infra-local-encrypt
+    environment: dev
+    domains:
+      - nowak-dev.xyz
+      - grafana.nowak-dev.xyz
+      - kibana.nowak-dev.xyz
+      - accounts.nowak-dev.xyz
+      - openfaas.nowak-dev.xyz
+
 local-elk:
   kibana:
     ingress:
@@ -11,12 +35,13 @@ local-elk:
         nginx.ingress.kubernetes.io/auth-secret: basic-auth
         # message to display with an appropriate context why the authentication is required
         nginx.ingress.kubernetes.io/auth-realm: 'Authentication Required'
-      tls:
-      - hosts:
-        - kibana.nowak-dev.xyz
-        secretName: dev-secret-infra-local-encrypt
+      path: /
       hosts:
         - kibana.nowak-dev.xyz
+      tls:
+        - secretName: dev-secret-infra-local-encrypt
+          hosts:
+            - kibana.nowak-dev.xyz
 
 local-cloak:
   keycloak:
@@ -72,23 +97,3 @@ local-metrics:
           - secretName: dev-secret-infra-local-encrypt
             hosts:
             - grafana.nowak-dev.xyz
-
-local-encrypt:
-  enabled: true
-
-nginx-ingress:
-  controller:
-    service:
-      loadBalancerIP: 34.68.187.183
-      externalTrafficPolicy: Cluster
-
-global:
-  certificate:
-    secret: dev-secret-infra-local-encrypt
-    environment: dev
-    domains:
-      - nowak-dev.xyz
-      - grafana.nowak-dev.xyz
-      - kibana.nowak-dev.xyz
-      - accounts.nowak-dev.xyz
-      - openfaas.nowak-dev.xyz

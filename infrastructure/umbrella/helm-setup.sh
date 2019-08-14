@@ -37,6 +37,16 @@ function continueReady {
   yesOrNo "Are you ready to continue?" true
 }
 
+function removeHelmManual() {
+    # we know this will be here unless tiller has never been setup before
+    kubectl delete deployment tiller-deploy --namespace kube-system
+    kubectl delete service tiller-deploy --namespace kube-system
+    # This may not be there even if it has
+    kubectl delete secret tiller-secret --namespace kube-system
+    kubectl delete serviceaccount tiller --namespace kube-system
+#    helm reset --force
+}
+
 function removeHelm {
   echo "This will remove helm"
   echo "$(continueReady)"
@@ -49,13 +59,7 @@ function removeHelm {
   ACTUAL=$(helm reset --tls-verify)
   if [[ "$ACTUAL" != "$EXPECTED" ]]
   then
-    # we know this will be here unless tiller has never been setup before
-    kubectl delete deployment tiller-deploy --namespace kube-system
-    kubectl delete service tiller-deploy --namespace kube-system
-    # This may not be there even if it has
-    kubectl delete secret tiller-secret --namespace kube-system
-    kubectl delete serviceaccount tiller --namespace kube-system
-#    helm reset --force
+    removeHelmManual
   else
     helm reset --remove-helm-home --tls
   fi
@@ -87,6 +91,8 @@ function removeCertManager {
 function removeSecrets {
   kubectl delete secret --all
   kubectl delete secret basic-auth || true
+  kubectl delete configMap application.v1 --namespace kube-system
+  kubectl delete configMap infra.v1 --namespace kube-system
 }
 
 function removeClusterRoleBindings() {
@@ -112,10 +118,16 @@ function removeReleases() {
   helm delete --purge application --tls
 }
 
+function removeReleasesMini() {
+  helm delete --purge infra
+  helm delete --purge application
+}
+
 function removeAllFromCluster() {
-    removeReleases
 #    kubectl delete deployments,sts,services,daemonSets --all
+    kubectl delete services,sts,deployments,daemonSets,serviceMonitors,pv,pvc,crd,serviceAccounts,secrets,cm --all
     removeCerts
+    removeHelmManual
 #    removeHelm
     removeCertManager
     removeClusterRoleBindings
@@ -213,6 +225,7 @@ function initializeHelm {
   local CURRENT
   CURRENT="$(pwd)"
   checkForCerts
+  generateCertsNewCA
   cd certs || exit
   box "test initialize tiller on the server"
   helm init --dry-run --debug --tiller-tls --tiller-tls-cert ./tiller.cert.pem --tiller-tls-key ./tiller.key.pem --tiller-tls-verify --tls-ca-cert ca.cert.pem --service-account tiller > helm-tiller-setup.yaml
@@ -223,16 +236,23 @@ function initializeHelm {
   box "Pausing for 30 seconds for tiller agent to become ready"
   sleep 30s
   box "copying client certs into helm directory"
+  cp ca.cert.pem ~/.helm/ca.pem
   cp helm.cert.pem ~/.helm/cert.pem
   cp helm.key.pem ~/.helm/key.pem
   cd "$CURRENT" || exit
+}
+
+function initializeHelmMini {
+  helm init
+  box "Pausing for 30 seconds for tiller agent to become ready"
+  sleep 30s
 }
 
 
 function setupBasicAuth() {
   checkForCerts
   local PASSWORD
-  PASSWORD=getPassword
+  PASSWORD="$(getPassword)"
   htpasswd -cb ./certs/auth admin $PASSWORD
 
   kubectl -n default create secret generic basic-auth \
@@ -257,18 +277,6 @@ function setupFirstTime() {
   box "Initializing helm with tls."
 
   generateCertsNewCA
-  initializeHelm
-}
-
-function setupClean() {
-  genMessage
-  echo "$(startGenerating)"
-  box "Initializing helm with tls."
-
-  removeCerts
-  removeHelm
-  generateCertsNewCA
-  initializeHelm
 }
 
 function help() {
@@ -283,11 +291,13 @@ function setupGKE() {
   kubectl create clusterrolebinding my-cluster-admin-binding --clusterrole=cluster-admin --user=$(gcloud info --format="value(config.account)")
 #  kubectl create clusterrolebinding my-cluster-admin-binding --clusterrole=cluster-admin --user=system:serviceaccount:kube-system:tiller --namespace=kube-system
   setupBasicAuth
+  initializeHelm
   setupFirstTime
   installDemoGKE
 }
 
 function setupCleanGKE() {
+    removeReleases
     removeAllFromCluster
     setupGKE
 }
@@ -295,16 +305,18 @@ function setupCleanGKE() {
 function setupMinikube() {
   kubectl create clusterrolebinding my-cluster-admin-binding --clusterrole=cluster-admin --user="$1"
   setupBasicAuth
-  setupFirstTime
+  initializeHelmMini
+#  setupFirstTime
   installDemoMinikube
 }
 
-function setupCleanMiniKube() {
+function setupCleanMinikube() {
+    removeReleasesMini
     removeAllFromCluster
     setupMinikube $1
 }
 
-function setupPurgeMiniKube() {
+function setupPurgeMinikube() {
     removeMinikube
     startMinikube
     setupMinikube $1
@@ -313,6 +325,17 @@ function setupPurgeMiniKube() {
 function startMinikube() {
   box "starting minikube"
   minikube start --memory 11000 --insecure-registry localhost:5000
+  minikube tunnel
+}
+
+function stopMinikube() {
+  box "stopping minikube"
+  echo " "
+  echo "have you stopped the tunnes yet?"
+  echo " "
+  continueReady
+  minikube tunnel -c
+  minikube stop
 }
 
 function installCertManager() {
@@ -330,18 +353,21 @@ function installDemoGKE() {
   box "building docker image"
   docker build application -t gcr.io/k8frastructure/logger:"$BUILD"
   docker push gcr.io/k8frastructure/logger:"$BUILD"
-  box "deploying helm chart"
-  helm install infrastructure/umbrella -n infra -f infrastructure/demo/values-gke.yaml --tls
-  helm install infrastructure/demo -n application -f infrastructure/demo/values-gke.yaml --set base-application.image.tag="$BUILD" --tls
+  box "deploying helm charts"
+  helm upgrade infra infrastructure/umbrella -f infrastructure/demo/values.yaml --install --tls
+  helm upgrade application infrastructure/demo -f infrastructure/demo/values-gke.yaml --set base-application.image.tag="$BUILD" --install --tls
 }
 
 function installDemoMinikube() {
+  box "building docker image"
   eval $(minikube docker-env)
   local BUILD
   BUILD="$(getBuild)"
+  installCertManager
   docker build application -t demo/logger:"$BUILD"
-  helm install infrastructure/umbrella -n infra -f infrastructure/demo/values.yaml --tls
-  helm install infrastructure/demo -n application -f infrastructure/demo/values.yaml --set base-application.image.tag="$BUILD" --tls
+  box "deploying helm charts"
+  helm upgrade infra infrastructure/umbrella -f infrastructure/umbrella/values-local.yaml --install
+  helm upgrade application infrastructure/demo -f infrastructure/demo/values.yaml --set base-application.image.tag="$BUILD" --install
 }
 
 "$@"
