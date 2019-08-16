@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+function getBuild {
+    echo "$(head -c 6 /dev/urandom | shasum| cut -d' ' -f1)"
+}
+BUILD=$(getBuild)
+
 function hl {
    echo "##############################################################";
 }
@@ -124,11 +129,9 @@ function removeReleasesMini() {
 }
 
 function removeAllFromCluster() {
-#    kubectl delete deployments,sts,services,daemonSets --all
     kubectl delete services,sts,deployments,daemonSets,serviceMonitors,pv,pvc,crd,serviceAccounts,secrets,cm --all
     removeCerts
     removeHelmManual
-#    removeHelm
     removeCertManager
     removeClusterRoleBindings
     removeSecrets
@@ -151,10 +154,6 @@ function getPassword {
   fi
   cd "$CURRENT" || exit
   echo "$PASSWORD"
-}
-
-function getBuild {
-    echo "$(head -c 6 /dev/urandom | shasum| cut -d' ' -f1)"
 }
 
 function createCertificate {
@@ -225,7 +224,6 @@ function initializeHelm {
   local CURRENT
   CURRENT="$(pwd)"
   checkForCerts
-  generateCertsNewCA
   cd certs || exit
   box "test initialize tiller on the server"
   helm init --dry-run --debug --tiller-tls --tiller-tls-cert ./tiller.cert.pem --tiller-tls-key ./tiller.key.pem --tiller-tls-verify --tls-ca-cert ca.cert.pem --service-account tiller > helm-tiller-setup.yaml
@@ -262,21 +260,22 @@ function setupBasicAuth() {
 }
 
 function setupFromCA() {
+  removeHelm
+  generateCertsFromCA
+  setup
+}
+
+function setup() {
   genMessage
   echo "$(startGenerating)"
   box "Initializing helm with tls."
 
-  removeHelm
-  generateCertsFromCA
   initializeHelm
 }
 
 function setupFirstTime() {
-  genMessage
-  echo "$(startGenerating)"
-  box "Initializing helm with tls."
-
   generateCertsNewCA
+  setup
 }
 
 function help() {
@@ -289,9 +288,7 @@ function help() {
 
 function setupGKE() {
   kubectl create clusterrolebinding my-cluster-admin-binding --clusterrole=cluster-admin --user=$(gcloud info --format="value(config.account)")
-#  kubectl create clusterrolebinding my-cluster-admin-binding --clusterrole=cluster-admin --user=system:serviceaccount:kube-system:tiller --namespace=kube-system
   setupBasicAuth
-  initializeHelm
   setupFirstTime
   installDemoGKE
 }
@@ -305,8 +302,7 @@ function setupCleanGKE() {
 function setupMinikube() {
   kubectl create clusterrolebinding my-cluster-admin-binding --clusterrole=cluster-admin --user="$1"
   setupBasicAuth
-  initializeHelmMini
-#  setupFirstTime
+  setupFirstTime
   installDemoMinikube
 }
 
@@ -346,28 +342,43 @@ function installCertManager() {
   kubectl label namespace cert-manager certmanager.k8s.io/disable-validation=true
 }
 
-function installDemoGKE() {
-  local BUILD
-  BUILD="$(getBuild)"
-  installCertManager
-  box "building docker image"
-  docker build application -t gcr.io/k8frastructure/logger:"$BUILD"
-  docker push gcr.io/k8frastructure/logger:"$BUILD"
+function getImageName() {
+  local IMAGE
+  IMAGE="$1"/logger:"$BUILD"
+  echo "$IMAGE"
+}
+
+function buildImage() {
+  box "building docker image $(getImageName "$1")"
+  docker build application -t "$(getImageName "$1")"
+}
+
+function buildCloud() {
+  buildImage "$1"
+  docker push "$(getImageName "$1")"
+}
+
+function buildLocal() {
+  eval $(minikube docker-env)
+  buildImage "$1"
+}
+
+function upgradePackages() {
   box "deploying helm charts"
-  helm upgrade infra infrastructure/umbrella -f infrastructure/demo/values.yaml --install --tls
-  helm upgrade application infrastructure/demo -f infrastructure/demo/values-gke.yaml --set base-application.image.tag="$BUILD" --install --tls
+  helm upgrade infra infrastructure/umbrella -f infrastructure/umbrella/"$1" --install --tls
+  helm upgrade application infrastructure/demo -f infrastructure/demo/"$2" --set base-application.image.tag="$BUILD" --install --tls
+}
+
+function installDemoGKE() {
+  installCertManager
+  buildCloud "gcr.io/k8frastructure"
+  upgradePackages values.yaml values-gke.yaml "$BUILD"
 }
 
 function installDemoMinikube() {
-  box "building docker image"
-  eval $(minikube docker-env)
-  local BUILD
-  BUILD="$(getBuild)"
   installCertManager
-  docker build application -t demo/logger:"$BUILD"
-  box "deploying helm charts"
-  helm upgrade infra infrastructure/umbrella -f infrastructure/umbrella/values-local.yaml --install
-  helm upgrade application infrastructure/demo -f infrastructure/demo/values.yaml --set base-application.image.tag="$BUILD" --install
+  buildLocal "demo"
+  upgradePackages values-local.yaml values.yaml "$BUILD"
 }
 
 "$@"
