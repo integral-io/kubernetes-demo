@@ -1,8 +1,5 @@
 FROM gradle:jdk11 as BUILD
 
-ARG AZURE_ARTIFACTS_ENV_ACCESS_TOKEN
-ENV AZURE_ARTIFACTS_ENV_ACCESS_TOKEN=$AZURE_ARTIFACTS_ENV_ACCESS_TOKEN
-RUN bash -c 'echo -e $AZURE_ARTIFACTS_ENV_ACCESS_TOKEN'
 COPY --chown=gradle:gradle . /project
 RUN gradle -i -s -b /project/build.gradle clean test build && \
     rm -rf /project/build/install/*/bin/*.bat

@@ -1,6 +1,7 @@
 replicaCount: 1
 image:
   pullPolicy: IfNotPresent
+  requiresAuth: false
 service:
   name: java
   type: ClusterIP

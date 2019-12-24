@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ template "fullname" . }}
@@ -6,10 +6,13 @@ metadata:
     chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
 spec:
   replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "fullname" . }}
   template:
     metadata:
-      annotations:
-        buildID: {{ .Values.buildID }}
+#      annotations:
+#        buildID: {{ .Values.buildID }}
       labels:
         app: {{ template "fullname" . }}
     spec:
@@ -39,6 +42,8 @@ spec:
           periodSeconds: 30
           failureThreshold: 2
         resources:
+{{- if .Values.image.requiresAuth -}}
 {{ toYaml .Values.resources | indent 12 }}
       imagePullSecrets:
         - name: {{ .Values.image.secret }}
+{{- end }}
