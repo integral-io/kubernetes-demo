@@ -1,7 +1,0 @@
-keycloak:
-  keycloak:
-    username: admin
-    existingSecret: basic-auth
-    existingSecretKey: basic-auth-password
-    ingress:
-      enabled: true

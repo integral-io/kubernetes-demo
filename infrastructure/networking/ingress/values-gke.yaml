@@ -1,0 +1,5 @@
+nginx-ingress:
+  controller:
+    service:
+      loadBalancerIP: 34.68.187.183
+      externalTrafficPolicy: Cluster

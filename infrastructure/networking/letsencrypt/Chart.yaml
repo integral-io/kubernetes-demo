@@ -1,0 +1,4 @@
+apiVersion: v1
+description: A setting up letsencrypt
+name: letsencrypt
+version: 0.1.0

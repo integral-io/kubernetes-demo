@@ -1,4 +1,0 @@
-apiVersion: v1
-description: A setting up certificates
-name: local-certs
-version: 0.1.0

@@ -1,0 +1,12 @@
+keycloak:
+  keycloak:
+    username: admin
+    existingSecret: basic-auth
+    existingSecretKey: basic-auth-password
+    ingress:
+      enabled: true
+      annotations:
+        kubernetes.io/ingress.class: nginx
+      hosts:
+        - accounts.nowak-dev.loc
+      path: /

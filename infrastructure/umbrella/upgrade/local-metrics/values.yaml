@@ -1,8 +1,0 @@
-prometheus-operator:
-  grafana:
-    admin:
-      existingSecret: basic-auth
-      userKey: basic-auth-user
-      passwordKey: basic-auth-password
-#    ingress:
-#      enabled: true

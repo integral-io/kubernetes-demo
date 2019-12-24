@@ -1,0 +1,19 @@
+openfaas:
+  basic_auth: false
+  prometheus:
+    create: false
+  functionNamespace: default
+  ingress:
+    enabled: true
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      # auth
+      nginx.ingress.kubernetes.io/auth-type: basic
+      nginx.ingress.kubernetes.io/auth-secret: basic-auth
+      # message to display with an appropriate context why the authentication is required
+      nginx.ingress.kubernetes.io/auth-realm: 'Authentication Required'
+    hosts:
+      - host: funcions.nowak-dev.loc
+        serviceName: gateway
+        servicePort: 8080
+        path: /

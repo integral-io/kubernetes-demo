@@ -1,0 +1,17 @@
+issuer:
+  email: andrew@integral.io
+
+enabled: false
+
+certificate:
+  secret: dev-secret-infra-local-encrypt
+  environment: dev
+  domains:
+  - nowak-dev.loc
+  - metrics.nowak-dev.loc
+  - elk.nowak-dev.loc
+  - functions.nowak-dev.loc
+
+service:
+  loadBalancerIP: 34.68.187.183
+  externalTrafficPolicy: Cluster
